@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vcs.controller.DashboardController">
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10;">
+            <Label fx:id="userInfoLabel" style="-fx-font-weight: bold;"/>
+            <Button text="Нов документ" onAction="#handleNewDocument" fx:id="newDocButton"/>
+            <Button fx:id="adminPanelButton" text="Управление на потребители" onAction="#handleOpenAdminPanel" visible="false" style="-fx-base: #f39c12;"/>
+        </HBox>
+    </top>
+    <center>
+        <TableView fx:id="documentTable">
+            <columns>
+                <TableColumn text="ID" fx:id="idCol" />
+                <TableColumn text="Заглавие" fx:id="titleCol" />
+                <TableColumn text="Метаданни" fx:id="metadataCol" />
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>

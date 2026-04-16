@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vcs.controller.UserManagementController">
+    <Label text="Управление на потребители" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="usernameCol" text="Потребител" prefWidth="150"/>
+            <TableColumn fx:id="roleCol" text="Роля" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+    <Separator/>
+
+    <GridPane hgap="10" vgap="10">
+        <TextField fx:id="newUsernameField" promptText="Потребителско име" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <PasswordField fx:id="newPasswordField" promptText="Парола" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="roleComboBox" promptText="Избери роля" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Button text="Регистрирай" onAction="#handleRegister" GridPane.columnIndex="1" GridPane.rowIndex="1" style="-fx-base: #2ecc71;"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Промени ролята" onAction="#handleChangeRole"/>
+        <Button text="Изтрий потребител" onAction="#handleDelete" style="-fx-base: #e74c3c;"/>
+    </HBox>
+</VBox>
