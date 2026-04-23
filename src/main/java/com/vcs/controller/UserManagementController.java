@@ -42,7 +42,7 @@ public class UserManagementController {
     }
 
     @FXML
-    public void handleDelete() {
+    public void handleDelete() throws Exception {
         User selected = userTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             userService.deleteUser(selected.getId());
@@ -51,7 +51,7 @@ public class UserManagementController {
     }
 
     @FXML
-    public void handleChangeRole() {
+    public void handleChangeRole() throws Exception {
         User selected = userTable.getSelectionModel().getSelectedItem();
         Role newRole = roleComboBox.getValue();
         if (selected != null && newRole != null) {

@@ -7,37 +7,43 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import com.vcs.util.SessionManager;
 
 public class DocumentService {
 
-    public void createDocument(String title, String metadata, byte[] initialContent) throws Exception {
-        User currentUser = SessionManager.getInstance().getCurrentUser();
-        if (currentUser.getRole() != Role.AUTHOR && currentUser.getRole() != Role.ADMIN) {
-            throw new Exception("Нямате права за създаване на документи.");
-        }
+    public void createDocument(String title, String metadata) throws Exception {
+        // Взимаме ID на текущия логнат потребител
+        Long currentUserId = SessionManager.getInstance().getCurrentUser().getId();
 
-        Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction();
+        Document doc = new Document();
+        doc.setTitle(title);
+        doc.setMetadata(metadata);
 
-            Document doc = new Document();
-            doc.setTitle(title);
-            doc.setMetadata(metadata);
-            session.persist(doc);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonBody = mapper.writeValueAsString(doc);
 
-            DocumentVersion version = new DocumentVersion();
-            version.setDocument(doc);
-            version.setVersionNumber(1);
-            version.setAuthor(currentUser);
-            version.setCreatedAt(LocalDateTime.now());
-            version.setStatus(VersionStatus.DRAFT);
-            version.setContent(initialContent);
-            session.persist(version);
+        HttpClient client = HttpClient.newHttpClient();
+        // Добавяме authorId като параметър в URL-а
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/documents?authorId=" + currentUserId))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
 
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) transaction.rollback();
-            throw e;
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Грешка от сървъра: " + response.body());
         }
     }
 
@@ -63,8 +69,27 @@ public class DocumentService {
     }
 
     public List<Document> getAllDocuments() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("FROM Document", Document.class).list();
+        try {
+            // 1. Създаваме клиент и пращаме заявка към Spring Boot сървъра
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/documents"))
+                    .GET()
+                    .build();
+
+            // 2. Получаваме JSON отговора
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // 3. Превръщаме JSON текста обратно в списък от обекти Document
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule()); // За да разчете датите правилно
+
+            return mapper.readValue(response.body(), new TypeReference<List<Document>>(){});
+
+        } catch (Exception e) {
+            System.err.println("Грешка при връзка със сървъра: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>(); // Връщаме празен списък, за да не крашне таблицата
         }
     }
     public List<DocumentVersion> getVersionsForDocument(Long documentId) {
@@ -105,37 +130,19 @@ public class DocumentService {
     }
 
     public void createNewVersion(Long documentId, byte[] content) throws Exception {
-        User currentUser = SessionManager.getInstance().getCurrentUser();
-        // Само автори и админи могат да създават нови версии
-        if (currentUser.getRole() != Role.AUTHOR && currentUser.getRole() != Role.ADMIN) {
-            throw new Exception("Нямате права за създаване на нови версии.");
-        }
+        Long authorId = SessionManager.getInstance().getCurrentUser().getId();
 
-        org.hibernate.Transaction transaction = null;
-        try (org.hibernate.Session session = com.vcs.util.HibernateUtil.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/documents/" + documentId + "/versions?authorId=" + authorId))
+                .header("Content-Type", "application/octet-stream") // Казваме, че пращаме байтове
+                .POST(HttpRequest.BodyPublishers.ofByteArray(content))
+                .build();
 
-            com.vcs.model.Document doc = session.get(com.vcs.model.Document.class, documentId);
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Намираме номера на последната версия
-            Integer lastVersionNum = (Integer) session.createQuery(
-                            "SELECT MAX(v.versionNumber) FROM DocumentVersion v WHERE v.document.id = :docId")
-                    .setParameter("docId", documentId)
-                    .uniqueResult();
-
-            com.vcs.model.DocumentVersion newVersion = new com.vcs.model.DocumentVersion();
-            newVersion.setDocument(doc);
-            newVersion.setVersionNumber(lastVersionNum + 1);
-            newVersion.setAuthor(currentUser);
-            newVersion.setCreatedAt(java.time.LocalDateTime.now());
-            newVersion.setStatus(com.vcs.model.VersionStatus.DRAFT);
-            newVersion.setContent(content);
-
-            session.persist(newVersion);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) transaction.rollback();
-            throw e;
+        if (response.statusCode() != 200) {
+            throw new Exception("Грешка при създаване на версия: " + response.body());
         }
     }
 

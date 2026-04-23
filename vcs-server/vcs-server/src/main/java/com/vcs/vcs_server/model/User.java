@@ -1,6 +1,8 @@
-package com.vcs.model;
+package com.vcs.vcs_server.model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +20,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public User(){
+
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

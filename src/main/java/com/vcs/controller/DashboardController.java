@@ -76,7 +76,7 @@ public class DashboardController {
     @FXML
     public void handleNewDocument() {
         try {
-            documentService.createDocument("Нов Документ", "Автоматично генериран", new byte[]{});
+            documentService.createDocument("Нов Документ", "Автоматично генериран");
             loadData();
         } catch (Exception e) {
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
