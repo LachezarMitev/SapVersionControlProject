@@ -27,7 +27,6 @@ public class UserController {
         if (userRepository.findByUsername(newUser.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Потребител с това име вече съществува!");
         }
-        // Хешираме паролата преди запис
         newUser.setPasswordHash(BCrypt.hashpw(newUser.getPasswordHash(), BCrypt.gensalt()));
         userRepository.save(newUser);
         return ResponseEntity.ok("Успешна регистрация!");

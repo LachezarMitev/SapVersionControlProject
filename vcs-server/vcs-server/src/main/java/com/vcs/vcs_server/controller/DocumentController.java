@@ -27,20 +27,17 @@ public class DocumentController {
         return documentRepository.findAll();
     }
 
-    // --- ДОБАВИ ТОВА: Метод за създаване на нов документ ---
     @PostMapping
     public ResponseEntity<Document> createDocument(@RequestBody Document doc, @RequestParam Long authorId) {
-        // 1. Първо записваме самия документ, за да получи ID
         Document savedDoc = documentRepository.save(doc);
 
-        // 2. Веднага създаваме "Версия 1" за този документ
         DocumentVersion v1 = new DocumentVersion();
         v1.setDocument(savedDoc);
         v1.setVersionNumber(1);
         v1.setAuthor(userRepository.findById(authorId).orElseThrow());
-        v1.setStatus(VersionStatus.DRAFT); // Първата версия винаги е чернова
+        v1.setStatus(VersionStatus.DRAFT);
         v1.setCreatedAt(LocalDateTime.now());
-        v1.setContent(new byte[0]); // Празно съдържание в началото
+        v1.setContent(new byte[0]);
 
         versionRepository.save(v1);
 
@@ -57,7 +54,6 @@ public class DocumentController {
         Document doc = documentRepository.findById(docId).orElseThrow();
         User author = userRepository.findById(authorId).orElseThrow();
 
-        // Намираме последната версия (ако има)
         List<DocumentVersion> history = versionRepository.findByDocumentIdOrderByVersionNumberDesc(docId);
         int nextVersionNum = history.isEmpty() ? 1 : history.get(0).getVersionNumber() + 1;
 

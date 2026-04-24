@@ -22,7 +22,6 @@ import com.vcs.util.SessionManager;
 public class DocumentService {
 
     public void createDocument(String title, String metadata) throws Exception {
-        // Взимаме ID на текущия логнат потребител
         Long currentUserId = SessionManager.getInstance().getCurrentUser().getId();
 
         Document doc = new Document();
@@ -33,7 +32,6 @@ public class DocumentService {
         String jsonBody = mapper.writeValueAsString(doc);
 
         HttpClient client = HttpClient.newHttpClient();
-        // Добавяме authorId като параметър в URL-а
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/documents?authorId=" + currentUserId))
                 .header("Content-Type", "application/json")
@@ -70,26 +68,23 @@ public class DocumentService {
 
     public List<Document> getAllDocuments() {
         try {
-            // 1. Създаваме клиент и пращаме заявка към Spring Boot сървъра
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:8080/api/documents"))
                     .GET()
                     .build();
 
-            // 2. Получаваме JSON отговора
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // 3. Превръщаме JSON текста обратно в списък от обекти Document
             ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule()); // За да разчете датите правилно
+            mapper.registerModule(new JavaTimeModule());
 
             return mapper.readValue(response.body(), new TypeReference<List<Document>>(){});
 
         } catch (Exception e) {
             System.err.println("Грешка при връзка със сървъра: " + e.getMessage());
             e.printStackTrace();
-            return new ArrayList<>(); // Връщаме празен списък, за да не крашне таблицата
+            return new ArrayList<>();
         }
     }
     public List<DocumentVersion> getVersionsForDocument(Long documentId) {
@@ -146,7 +141,6 @@ public class DocumentService {
         }
     }
 
-    // Метод за отхвърляне на версия
     public void rejectVersion(Long versionId) throws Exception {
         User currentUser = SessionManager.getInstance().getCurrentUser();
         if (currentUser.getRole() != Role.REVIEWER && currentUser.getRole() != Role.ADMIN) {

@@ -29,7 +29,6 @@ public class DashboardController {
         Role userRole = SessionManager.getInstance().getCurrentUser().getRole();
         userInfoLabel.setText("Влезли сте като: " + SessionManager.getInstance().getCurrentUser().getUsername() + " (" + userRole + ")");
 
-        // Права за бутоните
         if (userRole == Role.READER || userRole == Role.REVIEWER) {
             newDocButton.setVisible(false);
         }
@@ -41,7 +40,6 @@ public class DashboardController {
         titleCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         metadataCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMetadata()));
 
-        // --- СЪЗДАВАНЕ НА КОНТЕКСТНО МЕНЮ (Десен клик) ---
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem renameItem = new MenuItem("Преименувай");
@@ -52,10 +50,8 @@ public class DashboardController {
 
         contextMenu.getItems().addAll(renameItem, deleteItem);
 
-        // Свързваме менюто с таблицата
         documentTable.setContextMenu(contextMenu);
 
-        // --- ЛОГИКА ЗА РЕДОВЕТЕ (Двоен клик) ---
         documentTable.setRowFactory(tv -> {
             TableRow<Document> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -83,7 +79,6 @@ public class DashboardController {
         }
     }
 
-    // Метод за преименуване (вика се от контекстното меню)
     private void handleRenameAction() {
         Document selected = documentTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
@@ -104,7 +99,6 @@ public class DashboardController {
         });
     }
 
-    // Метод за изтриване (вика се от контекстното меню)
     private void handleDeleteAction() {
         Document selected = documentTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;

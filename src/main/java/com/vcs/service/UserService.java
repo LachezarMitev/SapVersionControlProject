@@ -33,7 +33,7 @@ public class UserService {
     public void registerUser(String username, String rawPassword, Role role) throws Exception {
         User user = new User();
         user.setUsername(username);
-        user.setPasswordHash(rawPassword); // Пращаме суровата парола, сървърът ще я хешира
+        user.setPasswordHash(rawPassword);
         user.setRole(role);
 
         String json = mapper.writeValueAsString(user);

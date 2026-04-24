@@ -30,12 +30,10 @@ public class DocumentDetailController {
 
 
 
-    // Този метод се вика от Dashboard-а, за да подаде избрания документ
     public void setDocument(Document document) {
         this.currentDocument = document;
         docTitleLabel.setText("Документ: " + document.getTitle());
 
-        // Показваме бутоните Одобри/Отхвърли само за Рецензенти и Админи
         Role userRole = SessionManager.getInstance().getCurrentUser().getRole();
         if (userRole == Role.REVIEWER || userRole == Role.ADMIN) {
             approveBtn.setVisible(true);
@@ -105,7 +103,6 @@ public class DocumentDetailController {
         List<DocumentVersion> items = versionsTable.getItems();
         int index = items.indexOf(selected);
 
-        // Тъй като са сортирани низходящо (DESC), предишната версия е на следващия индекс
         if (index + 1 < items.size()) {
             DocumentVersion previous = items.get(index + 1);
             contentArea1.setText(selected.getContent() != null ? new String(selected.getContent()) : "Няма съдържание");

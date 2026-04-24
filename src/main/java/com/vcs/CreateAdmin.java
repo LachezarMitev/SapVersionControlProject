@@ -14,7 +14,6 @@ public class CreateAdmin {
 
             User admin = new User();
             admin.setUsername("admin");
-            // Тук jBCrypt генерира 100% реален и валиден хеш за 'admin123'
             admin.setPasswordHash(BCrypt.hashpw("admin123", BCrypt.gensalt()));
             admin.setRole(Role.ADMIN);
 

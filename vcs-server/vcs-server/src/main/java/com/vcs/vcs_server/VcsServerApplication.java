@@ -18,21 +18,15 @@ public class VcsServerApplication {
         SpringApplication.run(VcsServerApplication.class, args);
     }
 
-    // Този метод ще се изпълни автоматично при стартиране на сървъра
     @Bean
     public CommandLineRunner seedDatabase(UserRepository userRepository) {
         return args -> {
-            // Проверяваме дали вече има админ, за да не го създаваме два пъти
             if (userRepository.findByUsername("admin").isEmpty()) {
                 User admin = new User();
                 admin.setUsername("admin");
-                // Криптираме паролата 'admin123'
                 admin.setPasswordHash(BCrypt.hashpw("admin123", BCrypt.gensalt()));
                 admin.setRole(Role.ADMIN);
 
-                // Важно: Задаваме текуща дата, за да избегнем грешката '0000-00-00'
-                // Ако в модела ти User няма created_at, просто изтрий долния ред
-                // admin.setCreatedAt(LocalDateTime.now());
 
                 userRepository.save(admin);
                 System.out.println("--------------------------------------");
